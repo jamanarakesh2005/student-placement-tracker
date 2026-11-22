@@ -2,50 +2,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Placement Tracker</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Preparation Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>My Placement Tracker</h1>
-    <p>Prepare today. Succeed tomorrow.</p>
-  </header>
 
-  <main>
-    <section class="stats">
-      <div class="card">
-        <h3>Total Tasks</h3>
-        <p id="total">0</p>
-      </div>
-      <div class="card">
-        <h3>Completed</h3>
-        <p id="completed">0</p>
-      </div>
-      <div class="card">
-        <h3>Pending</h3>
-        <p id="pending">0</p>
-      </div>
-    </section>
+<div class="app-container">
 
-    <section class="task-section">
-      <h2>My Preparation Tasks</h2>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <div class="brand-icon">P</div>
+            <div>
+                <h2>PlaceTrack</h2>
+                <span>Student Portal</span>
+            </div>
+        </div>
 
-      <form id="taskForm">
-        <input
-          type="text"
-          id="taskInput"
-          placeholder="Enter your task..."
-          required
-        >
-        <button type="submit">Add Task</button>
-      </form>
+        <nav class="navigation">
+            <p class="nav-heading">MENU</p>
 
-      <ul id="taskList"></ul>
-    </section>
-  </main>
+            <a href="#" class="nav-link active" data-category="All">
+                <span>▦</span> Dashboard
+            </a>
 
-  <script src="script.js"></script>
+            <p class="nav-heading">PREPARATION</p>
+
+            <a href="#" class="nav-link" data-category="DSA">
+                <span>⌘</span> DSA
+            </a>
+
+            <a href="#" class="nav-link" data-category="Java">
+                <span>☕</span> Java
+            </a>
+
+            <a href="#" class="nav-link" data-category="Python">
+                <span>🐍</span> Python
+            </a>
+
+            <a href="#" class="nav-link" data-category="Aptitude">
+                <span>◈</span> Aptitude
+            </a>
+
+            <a href="#" class="nav-link" data-category="Interview">
+                <span>♧</span> Interview Preparation
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-message">
+                <h3>Keep Learning!</h3>
+                <p>Small progress every day leads to big success.</p>
+            </div>
+            <p class="sidebar-footer">© 2026 PlaceTrack</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="menu-toggle" id="menuToggle"
+                    aria-label="Toggle navigation">☰</button>
+                <div>
+                    <h1>Placement Dashboard</h1>
+                    <p>Track your preparation and achieve your career goals.</p>
+                </div>
+            </div>
+
+            <div class="profile">
+                <div class="avatar">S</div>
+                <div>
+                    <strong>Student</strong>
+                    <small>Placement Candidate</small>
+                </div>
+            </div>
+        </header>
+
+        <section class="welcome-section">
+            <div>
+                <h2>Welcome Back! 👋</h2>
+                <p>Stay consistent. Your dream placement starts with preparation.</p>
+            </div>
+            <div class="date-display" id="currentDate"></div>
+        </section>
+
+        <!-- Statistics -->
+        <section class="stats-grid">
+
+            <div class="stat-card blue">
+                <div class="stat-icon">📚</div>
+                <p>Total Tasks</p>
+                <h2 id="total">0</h2>
+                <small>All preparation tasks</small>
+            </div>
+
+            <div class="stat-card green">
+                <div class="stat-icon">✓</div>
+                <p>Completed</p>
+                <h2 id="completed">0</h2>
+                <small>Successfully completed</small>
+            </div>
+
+            <div class="stat-card orange">
+                <div class="stat-icon">◷</div>
+                <p>Pending</p>
+                <h2 id="pending">0</h2>
+                <small>Tasks remaining</small>
+            </div>
+
+            <div class="stat-card purple">
+                <div class="stat-icon">%</div>
+                <p>Completion Rate</p>
+                <h2 id="percentage">0%</h2>
+                <small>Overall progress</small>
+            </div>
+
+        </section>
+
+        <!-- Progress -->
+        <section class="progress-section">
+            <div class="section-title">
+                <div>
+                    <h2>Preparation Progress</h2>
+                    <p>Monitor your overall placement preparation.</p>
+                </div>
+                <strong id="progressText">0% completed</strong>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </section>
+
+        <!-- Task Management -->
+        <section class="task-section">
+
+            <div class="section-title task-heading">
+                <div>
+                    <h2>My Preparation Tasks</h2>
+                    <p>Organize your daily learning activities.</p>
+                </div>
+            </div>
+
+            <!-- Add Task Form -->
+            <form id="taskForm" class="task-form">
+
+                <input
+                    type="text"
+                    id="taskInput"
+                    placeholder="Enter a preparation task..."
+                    required
+                    maxlength="120"
+                >
+
+                <select id="categoryInput" aria-label="Task category">
+                    <option value="DSA">DSA</option>
+                    <option value="Java">Java</option>
+                    <option value="Python">Python</option>
+                    <option value="Aptitude">Aptitude</option>
+                    <option value="Interview">Interview Preparation</option>
+                </select>
+
+                <button type="submit" class="add-button">
+                    + Add Task
+                </button>
+
+            </form>
+
+            <!-- Search and Filter -->
+            <div class="filter-container">
+
+                <div class="search-box">
+                    <span>⌕</span>
+                    <input
+                        type="search"
+                        id="searchInput"
+                        placeholder="Search your tasks..."
+                    >
+                </div>
+
+                <select id="filterInput" aria-label="Filter tasks">
+                    <option value="All">All Categories</option>
+                    <option value="DSA">DSA</option>
+                    <option value="Java">Java</option>
+                    <option value="Python">Python</option>
+                    <option value="Aptitude">Aptitude</option>
+                    <option value="Interview">Interview Preparation</option>
+                </select>
+
+                <select id="statusFilter" aria-label="Filter by status">
+                    <option value="All">All Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                </select>
+
+            </div>
+
+            <!-- Task List -->
+            <div class="task-list-header">
+                <h3>Task List</h3>
+                <span id="taskCount">0 tasks</span>
+            </div>
+
+            <div id="taskList" class="task-list"></div>
+
+        </section>
+
+        <footer class="main-footer">
+            Built for your placement success. Keep learning, keep growing! 🚀
+        </footer>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
