@@ -1,113 +1,151 @@
 
-// ========================================
-// STUDENT PLACEMENT TRACKER
-// Main JavaScript
-// ========================================
+// ===============================================
+// PREPPILOT - STUDENT PLACEMENT TRACKER
+// Original JavaScript Implementation
+// ===============================================
 
-// 1. Select HTML elements
-
-const taskForm = document.getElementById("taskForm");
-const taskInput = document.getElementById("taskInput");
-const categoryInput = document.getElementById("categoryInput");
-
-const taskList = document.getElementById("taskList");
-
-const totalElement = document.getElementById("total");
-const completedElement = document.getElementById("completed");
-const pendingElement = document.getElementById("pending");
-const percentageElement = document.getElementById("percentage");
-
-const progressBar = document.getElementById("progressBar");
-const progressText = document.getElementById("progressText");
-
-const searchInput = document.getElementById("searchInput");
-const filterInput = document.getElementById("filterInput");
-const statusFilter = document.getElementById("statusFilter");
-
-const taskCount = document.getElementById("taskCount");
-
-const sidebar = document.getElementById("sidebar");
-const menuToggle = document.getElementById("menuToggle");
+"use strict";
 
 
-// 2. LocalStorage key
-// Keep the same key as your old project.
+// 1. SELECT HTML ELEMENTS
+
+const elements = {
+    taskForm: document.getElementById("taskForm"),
+    taskInput: document.getElementById("taskInput"),
+    categoryInput: document.getElementById("categoryInput"),
+    priorityInput: document.getElementById("priorityInput"),
+    deadlineInput: document.getElementById("deadlineInput"),
+
+    taskList: document.getElementById("taskList"),
+    searchInput: document.getElementById("searchInput"),
+    filterInput: document.getElementById("filterInput"),
+    statusFilter: document.getElementById("statusFilter"),
+
+    total: document.getElementById("total"),
+    completed: document.getElementById("completed"),
+    pending: document.getElementById("pending"),
+    percentage: document.getElementById("percentage"),
+
+    progressBar: document.getElementById("progressBar"),
+    progressText: document.getElementById("progressText"),
+    progressSummary: document.getElementById("progressSummary"),
+
+    taskCount: document.getElementById("taskCount"),
+    currentDate: document.getElementById("currentDate"),
+
+    sidebar: document.getElementById("sidebar"),
+    menuToggle: document.getElementById("menuToggle")
+};
+
+
+// 2. APPLICATION CONFIGURATION
 
 const STORAGE_KEY = "tasks";
 
+const CATEGORIES = [
+    "DSA",
+    "Java",
+    "Python",
+    "Aptitude",
+    "Interview"
+];
 
-// 3. Load existing tasks safely
+const PRIORITIES = [
+    "High",
+    "Medium",
+    "Low"
+];
+
+
+// 3. APPLICATION STATE
+
+let tasks = loadTasks();
+
+let filters = {
+    search: "",
+    category: "All",
+    status: "All"
+};
+
+
+// 4. GENERATE UNIQUE TASK ID
+
+function generateId() {
+
+    if (
+        typeof crypto !== "undefined" &&
+        typeof crypto.randomUUID === "function"
+    ) {
+        return crypto.randomUUID();
+    }
+
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+}
+
+
+// 5. LOAD DATA FROM LOCAL STORAGE
 
 function loadTasks() {
 
     try {
 
-        const savedTasks = localStorage.getItem(STORAGE_KEY);
+        const savedData = localStorage.getItem(STORAGE_KEY);
 
-        if (!savedTasks) {
+        if (!savedData) {
             return [];
         }
 
-        const parsedTasks = JSON.parse(savedTasks);
+        const parsedData = JSON.parse(savedData);
 
-        if (!Array.isArray(parsedTasks)) {
-            console.error("Invalid task data in LocalStorage.");
+        if (!Array.isArray(parsedData)) {
             return [];
         }
 
-        // Upgrade old tasks without deleting their data.
-        // Old format: { name, completed }
+        return parsedData.map((task, index) => {
 
-        return parsedTasks
-            .filter(task =>
-                task &&
-                typeof task.name === "string"
-            )
-            .map(task => ({
-                ...task,
-                name: task.name,
-                completed: Boolean(task.completed),
-                category: [
-                    "DSA",
-                    "Java",
-                    "Python",
-                    "Aptitude",
-                    "Interview"
-                ].includes(task.category)
-                    ? task.category
-                    : "DSA",
-                id: task.id || createId()
-            }));
+            const oldTask = task && typeof task === "object"
+                ? task
+                : {};
+
+            const category = CATEGORIES.includes(oldTask.category)
+                ? oldTask.category
+                : "DSA";
+
+            const priority = PRIORITIES.includes(oldTask.priority)
+                ? oldTask.priority
+                : "Medium";
+
+            return {
+                id: String(oldTask.id ?? `legacy-${index}`),
+                name: String(
+                    oldTask.name ??
+                    oldTask.title ??
+                    oldTask.text ??
+                    ""
+                ).trim(),
+                category,
+                priority,
+                completed: oldTask.completed === true,
+                deadline: isValidDate(oldTask.deadline)
+                    ? oldTask.deadline
+                    : ""
+            };
+
+        }).filter(task => task.name.length > 0);
 
     } catch (error) {
 
-        console.error("Unable to load tasks:", error);
+        console.error("Error loading tasks:", error);
+
         return [];
 
     }
-}
-
-
-// 4. Application data
-
-let tasks = loadTasks();
-
-
-// 5. Generate unique task ID
-
-function createId() {
-
-    if (window.crypto && window.crypto.randomUUID) {
-        return window.crypto.randomUUID();
-    }
-
-    return Date.now().toString(36) +
-        Math.random().toString(36).slice(2);
 
 }
 
 
-// 6. Save tasks to LocalStorage
+// 6. SAVE DATA
 
 function saveTasks() {
 
@@ -118,244 +156,571 @@ function saveTasks() {
             JSON.stringify(tasks)
         );
 
+        return true;
+
     } catch (error) {
 
         console.error("Unable to save tasks:", error);
 
         alert(
-            "Unable to save tasks. Your browser storage may be full or unavailable."
+            "Your browser could not save the tasks. " +
+            "Check available storage."
         );
+
+        return false;
 
     }
 
 }
 
 
-// 7. Add a new task
+// 7. DATE VALIDATION
 
-taskForm.addEventListener("submit", function(event) {
+function isValidDate(value) {
+
+    if (
+        typeof value !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value)
+    ) {
+        return false;
+    }
+
+    const date = new Date(value + "T00:00:00");
+
+    return (
+        !Number.isNaN(date.getTime()) &&
+        date.toISOString().slice(0, 10) === value
+    );
+
+}
+
+
+// 8. ADD TASK
+
+function addTask(event) {
 
     event.preventDefault();
 
-    const taskName = taskInput.value.trim();
-    const category = categoryInput.value;
+    const name = elements.taskInput.value.trim();
 
-    if (taskName === "") {
+    const category = elements.categoryInput.value;
+
+    const priority = elements.priorityInput.value;
+
+    const deadline = elements.deadlineInput.value;
+
+    if (!name) {
+
         alert("Please enter a task name.");
+
+        elements.taskInput.focus();
+
         return;
+
+    }
+
+    if (name.length > 120) {
+
+        alert("Task name cannot exceed 120 characters.");
+
+        return;
+
+    }
+
+    if (!CATEGORIES.includes(category)) {
+
+        alert("Please select a valid category.");
+
+        return;
+
+    }
+
+    if (!PRIORITIES.includes(priority)) {
+
+        alert("Please select a valid priority.");
+
+        return;
+
+    }
+
+    if (deadline && !isValidDate(deadline)) {
+
+        alert("Please enter a valid deadline.");
+
+        return;
+
     }
 
     const newTask = {
-
-        id: createId(),
-
-        name: taskName,
-
-        category: category,
-
+        id: generateId(),
+        name,
+        category,
+        priority,
+        deadline,
         completed: false
-
     };
 
-    tasks.push(newTask);
+    tasks.unshift(newTask);
 
     saveTasks();
 
-    taskInput.value = "";
+    elements.taskForm.reset();
 
-    // Show the newly added task even if filters were active.
-    searchInput.value = "";
-    filterInput.value = "All";
-    statusFilter.value = "All";
+    elements.priorityInput.value = "Medium";
 
-    updateDashboard();
+    elements.taskInput.focus();
 
-    taskInput.focus();
+    renderDashboard();
 
-});
+}
 
 
-// 8. Complete or undo a task
+// 9. EDIT TASK
 
-function toggleTask(id) {
+function editTask(id) {
 
-    const task = tasks.find(task => task.id === id);
+    const task = tasks.find(item => item.id === id);
 
     if (!task) return;
 
-    task.completed = !task.completed;
-
-    saveTasks();
-
-    updateDashboard();
-
-}
-
-
-// 9. Delete a task
-
-function deleteTask(id) {
-
-    const confirmDelete = confirm(
-        "Are you sure you want to delete this task?"
+    const updatedName = prompt(
+        "Enter the updated task name:",
+        task.name
     );
 
-    if (!confirmDelete) return;
+    if (updatedName === null) return;
 
-    tasks = tasks.filter(task => task.id !== id);
+    const cleanName = updatedName.trim();
 
-    saveTasks();
+    if (!cleanName) {
 
-    updateDashboard();
-
-}
-
-
-// 10. Display tasks
-
-function renderTasks() {
-
-    const searchValue = searchInput.value
-        .trim()
-        .toLowerCase();
-
-    const selectedCategory = filterInput.value;
-    const selectedStatus = statusFilter.value;
-
-    const filteredTasks = tasks.filter(task => {
-
-        const matchesSearch = task.name
-            .toLowerCase()
-            .includes(searchValue);
-
-        const matchesCategory =
-            selectedCategory === "All" ||
-            task.category === selectedCategory;
-
-        const matchesStatus =
-            selectedStatus === "All" ||
-            (selectedStatus === "Completed" && task.completed) ||
-            (selectedStatus === "Pending" && !task.completed);
-
-        return matchesSearch &&
-            matchesCategory &&
-            matchesStatus;
-
-    });
-
-    taskList.innerHTML = "";
-
-    taskCount.textContent =
-        `${filteredTasks.length} tasks`;
-
-    if (filteredTasks.length === 0) {
-
-        taskList.innerHTML = `
-            <div class="empty-message">
-                <h3>No tasks found!</h3>
-                <p>Add a new task or change your search filters.</p>
-            </div>
-        `;
+        alert("Task name cannot be empty.");
 
         return;
 
     }
 
-    filteredTasks.forEach(task => {
+    if (cleanName.length > 120) {
 
-        const taskItem = document.createElement("div");
+        alert("Task name cannot exceed 120 characters.");
 
-        taskItem.className = "task-item";
+        return;
 
-        if (task.completed) {
-            taskItem.classList.add("completed");
-        }
+    }
 
-        const leftSection = document.createElement("div");
-        leftSection.className = "task-left";
+    task.name = cleanName;
 
-        const checkbox = document.createElement("input");
+    saveTasks();
 
-        checkbox.type = "checkbox";
-        checkbox.className = "task-checkbox";
-        checkbox.checked = task.completed;
-        checkbox.setAttribute(
-            "aria-label",
-            `Mark ${task.name} as completed`
+    renderDashboard();
+
+}
+
+
+// 10. DELETE TASK
+
+function deleteTask(id) {
+
+    const task = tasks.find(item => item.id === id);
+
+    if (!task) return;
+
+    const confirmation = confirm(
+        `Are you sure you want to delete "${task.name}"?`
+    );
+
+    if (!confirmation) return;
+
+    tasks = tasks.filter(item => item.id !== id);
+
+    saveTasks();
+
+    renderDashboard();
+
+}
+
+
+// 11. CHANGE TASK COMPLETION
+
+function toggleTask(id, completed) {
+
+    const task = tasks.find(item => item.id === id);
+
+    if (!task) return;
+
+    task.completed = completed;
+
+    saveTasks();
+
+    renderDashboard();
+
+}
+
+
+// 12. CHANGE PRIORITY
+
+function changePriority(id, priority) {
+
+    const task = tasks.find(item => item.id === id);
+
+    if (!task || !PRIORITIES.includes(priority)) return;
+
+    task.priority = priority;
+
+    saveTasks();
+
+    renderDashboard();
+
+}
+
+
+// 13. CHANGE DEADLINE
+
+function changeDeadline(id) {
+
+    const task = tasks.find(item => item.id === id);
+
+    if (!task) return;
+
+    const updatedDeadline = prompt(
+        "Enter deadline in YYYY-MM-DD format. Leave blank to remove it:",
+        task.deadline
+    );
+
+    if (updatedDeadline === null) return;
+
+    const value = updatedDeadline.trim();
+
+    if (value && !isValidDate(value)) {
+
+        alert("Invalid date. Use YYYY-MM-DD format.");
+
+        return;
+
+    }
+
+    task.deadline = value;
+
+    saveTasks();
+
+    renderDashboard();
+
+}
+
+
+// 14. CREATE HTML ELEMENTS SAFELY
+
+function createElement(tag, className, text) {
+
+    const element = document.createElement(tag);
+
+    if (className) {
+        element.className = className;
+    }
+
+    if (text !== undefined) {
+        element.textContent = text;
+    }
+
+    return element;
+
+}
+
+
+// 15. CREATE ACTION BUTTON
+
+function createButton(label, action, id, extraClass = "") {
+
+    const button = createElement(
+        "button",
+        extraClass,
+        label
+    );
+
+    button.type = "button";
+
+    button.dataset.action = action;
+
+    button.dataset.id = id;
+
+    return button;
+
+}
+
+
+// 16. CREATE PRIORITY SELECT
+
+function createPrioritySelect(task) {
+
+    const select = createElement(
+        "select",
+        "priority-select"
+    );
+
+    select.dataset.action = "priority";
+
+    select.dataset.id = task.id;
+
+    select.setAttribute(
+        "aria-label",
+        `Priority for ${task.name}`
+    );
+
+    PRIORITIES.forEach(priority => {
+
+        const option = createElement(
+            "option",
+            "",
+            priority
         );
 
-        checkbox.addEventListener("change", function() {
-            toggleTask(task.id);
-        });
+        option.value = priority;
 
-        const info = document.createElement("div");
-        info.className = "task-info";
+        option.selected = task.priority === priority;
 
-        const title = document.createElement("h4");
-        title.textContent = task.name;
+        select.appendChild(option);
 
-        const badge = document.createElement("span");
-        badge.className = "category-badge";
-        badge.textContent = task.category;
+    });
 
-        title.appendChild(badge);
+    return select;
 
-        const status = document.createElement("small");
+}
 
-        status.textContent = task.completed
-            ? "Completed"
-            : "Pending";
 
-        info.appendChild(title);
-        info.appendChild(status);
+// 17. CHECK OVERDUE DEADLINES
 
-        leftSection.appendChild(checkbox);
-        leftSection.appendChild(info);
+function isOverdue(task) {
 
-        const actions = document.createElement("div");
-        actions.className = "task-actions";
+    if (!task.deadline || task.completed) {
+        return false;
+    }
 
-        // Undo button for completed tasks
+    const today = new Date();
 
-        if (task.completed) {
+    const localToday = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0")
+    ].join("-");
 
-            const undoButton = document.createElement("button");
+    return task.deadline < localToday;
 
-            undoButton.className = "undo-button";
-            undoButton.textContent = "Undo";
+}
 
-            undoButton.addEventListener("click", function() {
-                toggleTask(task.id);
-            });
 
-            actions.appendChild(undoButton);
+// 18. BUILD TASK CARD
 
-        }
+function createTaskCard(task) {
 
-        // Delete button
+    const card = createElement(
+        "article",
+        "task-item"
+    );
 
-        const deleteButton = document.createElement("button");
+    card.dataset.id = task.id;
 
-        deleteButton.className = "delete-button";
-        deleteButton.textContent = "Delete";
+    if (task.completed) {
+        card.classList.add("completed-task");
+    }
 
-        deleteButton.addEventListener("click", function() {
-            deleteTask(task.id);
-        });
+    const details = createElement(
+        "div",
+        "task-details"
+    );
 
-        actions.appendChild(deleteButton);
+    const title = createElement(
+        "div",
+        "task-title"
+    );
 
-        taskItem.appendChild(leftSection);
-        taskItem.appendChild(actions);
+    const checkbox = createElement("input");
 
-        taskList.appendChild(taskItem);
+    checkbox.type = "checkbox";
+
+    checkbox.checked = task.completed;
+
+    checkbox.dataset.action = "toggle";
+
+    checkbox.dataset.id = task.id;
+
+    checkbox.setAttribute(
+        "aria-label",
+        `Mark ${task.name} as completed`
+    );
+
+    const name = createElement(
+        "span",
+        "task-name",
+        task.name
+    );
+
+    title.append(checkbox, name);
+
+    const meta = createElement(
+        "div",
+        "task-meta"
+    );
+
+    const category = createElement(
+        "span",
+        "category-badge",
+        task.category
+    );
+
+    const priority = createElement(
+        "span",
+        `priority-badge priority-${task.priority.toLowerCase()}`,
+        `${task.priority} Priority`
+    );
+
+    const deadlineText = task.deadline
+        ? `Due: ${task.deadline}`
+        : "No deadline";
+
+    const deadline = createElement(
+        "span",
+        "deadline",
+        deadlineText
+    );
+
+    if (isOverdue(task)) {
+        deadline.classList.add("overdue");
+        deadline.textContent += " · Overdue";
+    }
+
+    meta.append(category, priority, deadline);
+
+    details.append(title, meta);
+
+    const actions = createElement(
+        "div",
+        "task-actions"
+    );
+
+    const editButton = createButton(
+        "Edit",
+        "edit",
+        task.id
+    );
+
+    const deadlineButton = createButton(
+        "Deadline",
+        "deadline",
+        task.id
+    );
+
+    const deleteButton = createButton(
+        "Delete",
+        "delete",
+        task.id
+    );
+
+    const prioritySelect = createPrioritySelect(task);
+
+    actions.append(
+        editButton,
+        deadlineButton,
+        prioritySelect,
+        deleteButton
+    );
+
+    card.append(details, actions);
+
+    return card;
+
+}
+
+
+// 19. APPLY SEARCH AND FILTERS
+
+function getFilteredTasks() {
+
+    return tasks.filter(task => {
+
+        const matchesSearch = task.name
+            .toLowerCase()
+            .includes(filters.search);
+
+        const matchesCategory =
+            filters.category === "All" ||
+            task.category === filters.category;
+
+        const matchesStatus =
+            filters.status === "All" ||
+            (filters.status === "Completed" && task.completed) ||
+            (filters.status === "Pending" && !task.completed);
+
+        return (
+            matchesSearch &&
+            matchesCategory &&
+            matchesStatus
+        );
 
     });
 
 }
 
 
-// 11. Update statistics
+// 20. DISPLAY TASKS
+
+function renderTasks() {
+
+    const list = elements.taskList;
+
+    list.replaceChildren();
+
+    const visibleTasks = getFilteredTasks();
+
+    elements.taskCount.textContent =
+        `${visibleTasks.length} ${visibleTasks.length === 1 ? "Task" : "Tasks"}`;
+
+    if (visibleTasks.length === 0) {
+
+        const emptyState = createElement(
+            "div",
+            "empty-state"
+        );
+
+        const heading = createElement(
+            "h3",
+            "",
+            tasks.length === 0
+                ? "Your preparation journey starts here!"
+                : "No matching tasks found"
+        );
+
+        const message = createElement(
+            "p",
+            "",
+            tasks.length === 0
+                ? "Add your first placement preparation task."
+                : "Try changing your search or filters."
+        );
+
+        emptyState.append(heading, message);
+
+        list.appendChild(emptyState);
+
+        return;
+
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    visibleTasks.forEach(task => {
+
+        fragment.appendChild(
+            createTaskCard(task)
+        );
+
+    });
+
+    list.appendChild(fragment);
+
+}
+
+
+// 21. UPDATE STATISTICS
 
 function updateStatistics() {
 
@@ -367,139 +732,287 @@ function updateStatistics() {
 
     const pending = total - completed;
 
-    const percentage = total === 0
+    const progress = total === 0
         ? 0
         : Math.round((completed / total) * 100);
 
-    totalElement.textContent = total;
+    elements.total.textContent = total;
 
-    completedElement.textContent = completed;
+    elements.completed.textContent = completed;
 
-    pendingElement.textContent = pending;
+    elements.pending.textContent = pending;
 
-    percentageElement.textContent = percentage + "%";
+    elements.percentage.textContent = `${progress}%`;
 
-    progressBar.style.width = percentage + "%";
+    elements.progressBar.style.width = `${progress}%`;
 
-    progressText.textContent =
-        percentage + "% completed";
+    elements.progressBar.setAttribute(
+        "aria-valuenow",
+        progress
+    );
+
+    elements.progressText.textContent =
+        `${progress}% Completed`;
+
+    elements.progressSummary.textContent =
+        `${completed} of ${total} tasks completed`;
 
 }
 
 
-// 12. Update complete dashboard
+// 22. UPDATE DASHBOARD
 
-function updateDashboard() {
+function renderDashboard() {
+
+    renderTasks();
 
     updateStatistics();
 
-    renderTasks();
+}
+
+
+// 23. SEARCH EVENT
+
+elements.searchInput.addEventListener(
+    "input",
+    event => {
+
+        filters.search = event.target.value
+            .trim()
+            .toLowerCase();
+
+        renderTasks();
+
+    }
+);
+
+
+// 24. CATEGORY FILTER
+
+elements.filterInput.addEventListener(
+    "change",
+    event => {
+
+        filters.category = event.target.value;
+
+        updateNavigation();
+
+        renderTasks();
+
+    }
+);
+
+
+// 25. STATUS FILTER
+
+elements.statusFilter.addEventListener(
+    "change",
+    event => {
+
+        filters.status = event.target.value;
+
+        updateNavigation();
+
+        renderTasks();
+
+    }
+);
+
+
+// 26. TASK LIST CLICK EVENTS
+
+elements.taskList.addEventListener(
+    "click",
+    event => {
+
+        const button = event.target.closest(
+            "button[data-action]"
+        );
+
+        if (!button) return;
+
+        const id = button.dataset.id;
+
+        const action = button.dataset.action;
+
+        switch (action) {
+
+            case "edit":
+                editTask(id);
+                break;
+
+            case "delete":
+                deleteTask(id);
+                break;
+
+            case "deadline":
+                changeDeadline(id);
+                break;
+
+        }
+
+    }
+);
+
+
+// 27. TASK LIST CHANGE EVENTS
+
+elements.taskList.addEventListener(
+    "change",
+    event => {
+
+        const target = event.target;
+
+        const action = target.dataset.action;
+
+        const id = target.dataset.id;
+
+        if (!action || !id) return;
+
+        if (action === "toggle") {
+
+            toggleTask(id, target.checked);
+
+        }
+
+        if (action === "priority") {
+
+            changePriority(id, target.value);
+
+        }
+
+    }
+);
+
+
+// 28. SIDEBAR NAVIGATION
+
+function updateNavigation() {
+
+    document.querySelectorAll(".nav-item").forEach(button => {
+
+        const category = button.dataset.category;
+
+        const status = button.dataset.status;
+
+        const activeCategory =
+            category !== undefined &&
+            category === filters.category &&
+            filters.status === "All";
+
+        const activeStatus =
+            status !== undefined &&
+            status === filters.status &&
+            filters.category === "All";
+
+        button.classList.toggle(
+            "active",
+            activeCategory || activeStatus
+        );
+
+    });
 
 }
 
 
-// 13. Search functionality
+// 29. SIDEBAR CLICK EVENTS
 
-searchInput.addEventListener("input", function() {
+elements.sidebar.addEventListener(
+    "click",
+    event => {
 
-    renderTasks();
+        const button = event.target.closest(".nav-item");
 
-});
+        if (!button) return;
 
+        if (button.dataset.category !== undefined) {
 
-// 14. Category filtering
+            filters.category = button.dataset.category;
 
-filterInput.addEventListener("change", function() {
+            elements.filterInput.value = filters.category;
 
-    renderTasks();
+            filters.status = "All";
 
-});
+            elements.statusFilter.value = "All";
 
+        }
 
-// 15. Status filtering
+        if (button.dataset.status !== undefined) {
 
-statusFilter.addEventListener("change", function() {
+            filters.status = button.dataset.status;
 
-    renderTasks();
+            elements.statusFilter.value = filters.status;
 
-});
+            filters.category = "All";
 
+            elements.filterInput.value = "All";
 
-// 16. Sidebar category navigation
+        }
 
-document.querySelectorAll(".nav-link").forEach(link => {
+        updateNavigation();
 
-    link.addEventListener("click", function(event) {
+        renderTasks();
 
-        event.preventDefault();
+        elements.sidebar.classList.remove("active");
 
-        document.querySelectorAll(".nav-link")
-            .forEach(item => {
-                item.classList.remove("active");
-            });
-
-        this.classList.add("active");
-
-        const category = this.dataset.category;
-
-        filterInput.value = category;
-
-        searchInput.value = "";
-        statusFilter.value = "All";
-
-        updateDashboard();
-
-        sidebar.classList.remove("open");
-
-    });
-
-});
+    }
+);
 
 
-// 17. Mobile sidebar toggle
+// 30. MOBILE SIDEBAR
 
-menuToggle.addEventListener("click", function() {
+elements.menuToggle.addEventListener(
+    "click",
+    () => {
 
-    sidebar.classList.toggle("open");
+        elements.sidebar.classList.toggle("active");
 
-});
+    }
+);
 
 
-// 18. Display current date
+// 31. ADD TASK FORM EVENT
+
+elements.taskForm.addEventListener(
+    "submit",
+    addTask
+);
+
+
+// 32. DISPLAY CURRENT DATE
 
 function displayDate() {
 
-    const dateElement =
-        document.getElementById("currentDate");
-
     const today = new Date();
 
-    dateElement.textContent = today.toLocaleDateString(
-        "en-IN",
-        {
+    elements.currentDate.textContent =
+        today.toLocaleDateString("en-IN", {
             weekday: "long",
             day: "numeric",
             month: "long",
             year: "numeric"
-        }
+        });
+
+}
+
+
+// 33. INITIALIZE APPLICATION
+
+function initializeApp() {
+
+    displayDate();
+
+    updateNavigation();
+
+    renderDashboard();
+
+    console.log(
+        "PrepPilot dashboard initialized successfully!"
     );
 
 }
 
 
-// 19. Initialize application
+// START APPLICATION
 
-function initializeDashboard() {
-
-    saveTasks();
-
-    displayDate();
-
-    updateDashboard();
-
-}
-
-
-// Start the application
-
-initializeDashboard();
+initializeApp();

@@ -4,177 +4,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Placement Preparation Dashboard</title>
+
+    <title>PrepPilot | Student Placement Tracker</title>
+
+    <meta name="description" content="A professional student placement preparation and task tracking dashboard.">
+
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
+
 <body>
 
-<div class="app-container">
+<div class="app-layout">
 
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
+
         <div class="brand">
             <div class="brand-icon">P</div>
             <div>
-                <h2>PlaceTrack</h2>
-                <span>Student Portal</span>
+                <h2>PrepPilot</h2>
+                <span>PLACEMENT TRACKER</span>
             </div>
         </div>
 
+        <div class="sidebar-label">WORKSPACE</div>
+
         <nav class="navigation">
-            <p class="nav-heading">MENU</p>
+            <button class="nav-item active" data-category="All">
+                <span>◈</span> Dashboard
+            </button>
 
-            <a href="#" class="nav-link active" data-category="All">
-                <span>▦</span> Dashboard
-            </a>
+            <button class="nav-item" data-category="DSA">
+                <span>⌘</span> Data Structures
+            </button>
 
-            <p class="nav-heading">PREPARATION</p>
-
-            <a href="#" class="nav-link" data-category="DSA">
-                <span>⌘</span> DSA
-            </a>
-
-            <a href="#" class="nav-link" data-category="Java">
+            <button class="nav-item" data-category="Java">
                 <span>☕</span> Java
-            </a>
+            </button>
 
-            <a href="#" class="nav-link" data-category="Python">
-                <span>🐍</span> Python
-            </a>
+            <button class="nav-item" data-category="Python">
+                <span>⌁</span> Python
+            </button>
 
-            <a href="#" class="nav-link" data-category="Aptitude">
-                <span>◈</span> Aptitude
-            </a>
+            <button class="nav-item" data-category="Aptitude">
+                <span>◷</span> Aptitude
+            </button>
 
-            <a href="#" class="nav-link" data-category="Interview">
-                <span>♧</span> Interview Preparation
-            </a>
+            <button class="nav-item" data-category="Interview">
+                <span>✧</span> Interview Prep
+            </button>
+        </nav>
+
+        <div class="sidebar-label">TASK STATUS</div>
+
+        <nav class="navigation">
+            <button class="nav-item" data-status="Pending">
+                <span>○</span> Pending Tasks
+            </button>
+
+            <button class="nav-item" data-status="Completed">
+                <span>✓</span> Completed Tasks
+            </button>
         </nav>
 
         <div class="sidebar-bottom">
-            <div class="sidebar-message">
-                <h3>Keep Learning!</h3>
-                <p>Small progress every day leads to big success.</p>
+            <div class="sidebar-tip">
+                <div class="tip-icon">✦</div>
+                <h4>Stay consistent!</h4>
+                <p>Small daily progress creates big career opportunities.</p>
             </div>
-            <p class="sidebar-footer">© 2026 PlaceTrack</p>
+
+            <p class="sidebar-footer">PREPPILOT © 2026</p>
         </div>
+
     </aside>
 
-    <!-- Main Content -->
+
+    <!-- MAIN CONTENT -->
     <main class="main-content">
 
+        <!-- HEADER -->
         <header class="topbar">
-            <div class="topbar-left">
+
+            <div class="header-left">
                 <button class="menu-toggle" id="menuToggle"
                     aria-label="Toggle navigation">☰</button>
+
                 <div>
+                    <p class="welcome-text">YOUR CAREER JOURNEY</p>
                     <h1>Placement Dashboard</h1>
-                    <p>Track your preparation and achieve your career goals.</p>
+                    <p class="date-text" id="currentDate"></p>
                 </div>
             </div>
 
-            <div class="profile">
-                <div class="avatar">S</div>
-                <div>
-                    <strong>Student</strong>
-                    <small>Placement Candidate</small>
-                </div>
+            <div class="header-right">
+                <span class="status-indicator"></span>
+                <span>Preparation Mode</span>
             </div>
+
         </header>
 
-        <section class="welcome-section">
+
+        <!-- WELCOME BANNER -->
+        <section class="welcome-banner">
             <div>
-                <h2>Welcome Back! 👋</h2>
-                <p>Stay consistent. Your dream placement starts with preparation.</p>
+                <span class="banner-tag">YOUR FUTURE STARTS HERE</span>
+                <h2>Build skills. Track progress.<br>Get placed.</h2>
+                <p>Stay organized and prepare confidently for your dream job.</p>
             </div>
-            <div class="date-display" id="currentDate"></div>
+
+            <div class="banner-art" aria-hidden="true">
+                <div class="orbit orbit-one"></div>
+                <div class="orbit orbit-two"></div>
+                <div class="banner-symbol">✦</div>
+            </div>
         </section>
 
-        <!-- Statistics -->
+
+        <!-- STATISTICS -->
         <section class="stats-grid">
 
-            <div class="stat-card blue">
-                <div class="stat-icon">📚</div>
-                <p>Total Tasks</p>
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>Total Tasks</span>
+                    <span class="stat-icon purple">▤</span>
+                </div>
                 <h2 id="total">0</h2>
-                <small>All preparation tasks</small>
-            </div>
+                <p>All preparation tasks</p>
+            </article>
 
-            <div class="stat-card green">
-                <div class="stat-icon">✓</div>
-                <p>Completed</p>
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>Completed</span>
+                    <span class="stat-icon green">✓</span>
+                </div>
                 <h2 id="completed">0</h2>
-                <small>Successfully completed</small>
-            </div>
+                <p>Successfully completed</p>
+            </article>
 
-            <div class="stat-card orange">
-                <div class="stat-icon">◷</div>
-                <p>Pending</p>
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>Pending</span>
+                    <span class="stat-icon orange">◷</span>
+                </div>
                 <h2 id="pending">0</h2>
-                <small>Tasks remaining</small>
-            </div>
+                <p>Tasks remaining</p>
+            </article>
 
-            <div class="stat-card purple">
-                <div class="stat-icon">%</div>
-                <p>Completion Rate</p>
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span>Progress</span>
+                    <span class="stat-icon blue">↗</span>
+                </div>
                 <h2 id="percentage">0%</h2>
-                <small>Overall progress</small>
-            </div>
+                <p>Overall completion</p>
+            </article>
 
         </section>
 
-        <!-- Progress -->
-        <section class="progress-section">
-            <div class="section-title">
+
+        <!-- PROGRESS -->
+        <section class="progress-card">
+
+            <div class="section-heading">
                 <div>
+                    <span class="section-kicker">YOUR PERFORMANCE</span>
                     <h2>Preparation Progress</h2>
-                    <p>Monitor your overall placement preparation.</p>
                 </div>
-                <strong id="progressText">0% completed</strong>
+
+                <span class="progress-number" id="progressText">
+                    0% Completed
+                </span>
             </div>
 
             <div class="progress-track">
-                <div class="progress-fill" id="progressBar"></div>
+                <div id="progressBar" class="progress-fill"></div>
             </div>
+
+            <div class="progress-bottom">
+                <span>Keep learning every day</span>
+                <span id="progressSummary">0 of 0 tasks completed</span>
+            </div>
+
         </section>
 
-        <!-- Task Management -->
+
+        <!-- TASK MANAGEMENT -->
         <section class="task-section">
 
-            <div class="section-title task-heading">
+            <div class="section-heading task-heading">
                 <div>
+                    <span class="section-kicker">ORGANIZE YOUR LEARNING</span>
                     <h2>My Preparation Tasks</h2>
-                    <p>Organize your daily learning activities.</p>
+                    <p>Manage your daily placement preparation activities.</p>
                 </div>
+
+                <span class="task-counter" id="taskCount">0 Tasks</span>
             </div>
 
-            <!-- Add Task Form -->
+
+            <!-- ADD TASK FORM -->
             <form id="taskForm" class="task-form">
 
-                <input
-                    type="text"
-                    id="taskInput"
-                    placeholder="Enter a preparation task..."
-                    required
-                    maxlength="120"
-                >
+                <div class="form-field task-name-field">
+                    <label for="taskInput">Task Name</label>
+                    <input
+                        type="text"
+                        id="taskInput"
+                        placeholder="Example: Solve 5 array problems"
+                        maxlength="120"
+                        required
+                    >
+                </div>
 
-                <select id="categoryInput" aria-label="Task category">
-                    <option value="DSA">DSA</option>
-                    <option value="Java">Java</option>
-                    <option value="Python">Python</option>
-                    <option value="Aptitude">Aptitude</option>
-                    <option value="Interview">Interview Preparation</option>
-                </select>
+                <div class="form-field">
+                    <label for="categoryInput">Category</label>
+                    <select id="categoryInput">
+                        <option value="DSA">DSA</option>
+                        <option value="Java">Java</option>
+                        <option value="Python">Python</option>
+                        <option value="Aptitude">Aptitude</option>
+                        <option value="Interview">Interview</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="priorityInput">Priority</label>
+                    <select id="priorityInput">
+                        <option value="High">High</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="deadlineInput">Deadline</label>
+                    <input type="date" id="deadlineInput">
+                </div>
 
                 <button type="submit" class="add-button">
-                    + Add Task
+                    <span>+</span> Add Task
                 </button>
 
             </form>
 
-            <!-- Search and Filter -->
-            <div class="filter-container">
+
+            <!-- SEARCH AND FILTER -->
+            <div class="filter-toolbar">
 
                 <div class="search-box">
                     <span>⌕</span>
@@ -185,13 +263,13 @@
                     >
                 </div>
 
-                <select id="filterInput" aria-label="Filter tasks">
+                <select id="filterInput" aria-label="Filter by category">
                     <option value="All">All Categories</option>
                     <option value="DSA">DSA</option>
                     <option value="Java">Java</option>
                     <option value="Python">Python</option>
                     <option value="Aptitude">Aptitude</option>
-                    <option value="Interview">Interview Preparation</option>
+                    <option value="Interview">Interview</option>
                 </select>
 
                 <select id="statusFilter" aria-label="Filter by status">
@@ -202,24 +280,24 @@
 
             </div>
 
-            <!-- Task List -->
-            <div class="task-list-header">
-                <h3>Task List</h3>
-                <span id="taskCount">0 tasks</span>
-            </div>
 
-            <div id="taskList" class="task-list"></div>
+            <!-- TASK LIST -->
+            <div class="task-list" id="taskList">
+
+                <!-- JavaScript displays tasks here -->
+
+            </div>
 
         </section>
 
+
         <footer class="main-footer">
-            Built for your placement success. Keep learning, keep growing! 🚀
+            <p>Designed for your success. Keep learning, keep growing.</p>
         </footer>
 
     </main>
 
 </div>
 
-<script src="script.js"></script>
 </body>
 </html>
